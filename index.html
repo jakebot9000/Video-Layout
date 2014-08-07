@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Boilerplate</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="http://s0.2mdn.net/ads/studio/Enabler.js"></script>
+  <!-- Polymer should come before custom elements, like the close button. -->
+    <script src="https://www.gstatic.com/external_hosted/polymer/custom.elements.min.js"></script>
+
+  <!-- YouTube close button. -->
+    <script src="https://www.gstatic.com/ads/ci/ytclosebutton/1/ytclosebutton_min.js"></script>
+  <script src="https://www.gstatic.com/doubleclick/studio/innovation/h5/ytplayer/ytp_v2.js"></script>
+  <script src="main.js"></script>
+
+</head>
+<body>
+
+  <div id="ad_container">
+
+    <!-- Displayed before YTP is loaded and begins playback -->
+    <section id="pre_loader">
+      Pre_loader
+    </section>
+
+    <!-- Contains full bleed intro YTP and click for audio buttons -->
+    <section id="panel_intro">
+      <div id="ytp_intro"></div>
+      <div id="intro_controls">
+        <div class="clickForAudio"></div>
+        <div class="skip">Skip</div>
+        <div class="playToggle">PP</div>
+        <div class="volumeToggle">Vol</div>
+      </div>
+
+    </section>
+
+    <!-- Contains resolve content - Social icons, YTP player-->
+    <section id="panel_one">
+      Panel One
+      <div id="ytp"></div>
+      <div class="refresh_ad">R</div>
+      <div class="select_buttons">
+        <div class="video1">1</div>
+        <div class="video2">2</div>
+      </div>
+    </section>
+
+
+    <!-- Always visible above other content -->
+    <div id="persistent_display">
+      <div class="title_logo"></div>
+      <a href="#" class="tune_in"></a>
+      <a href="#" class="ticketing"></a>
+    </div>
+
+    <!-- Hold user defined exits and ONLY visible in Filler & Dev environment -->
+    <div id="user_exits"></div>
+
+    <!--
+    The YouTube close button will place itself in the top right corner of the parent element, which should be position relative. If the ad tag is setup correctly, the YouTube page language will be used for the text, otherwise it will fallback to using the lang attribute.
+
+    @attribute lang: An ISO 639-1 standard language code.
+    @attribute theme: The color theme of the button. Valid values are 'white', 'gray', 'black'.
+    @attribute shadow: Whether a shadow should be used.
+    -->
+    <ci-ytclosebutton lang="en" theme="black" shadow="true" id="ytClose_dc"/></ci>
+  </div>
+<script>console.log('index.html bottom');</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Studio Enabler Required -->
+  <script src="http://s0.2mdn.net/ads/studio/Enabler.js"></script>
+
+  <!-- Visibility Monitor Component-->
+  <script src="http://gstatic.com/doubleclick/studio/innovation/h5/visibility/1/creativemonitor_min.js"></script>
+
+  <!-- Youtube Video Player Compoenent-->
+  <script src="http://www.gstatic.com/doubleclick/studio/innovation/h5/ytplayer/ytp_v2.js"></script>
+  <script src="ytplayer.js"></script>
+
+  <!-- Content Style-->
+  <link rel="stylesheet" type="text/css" href="mainStyle.css">
+
+  <script language="javascript">
+
+    //Create instance for the Component
+    var adVisibility = new studioinnovation.visibility.CreativeMonitor();
+
+    //Set up callback
+    function onVisibilityChange()
+    {
+      //Calculate return value to percentage
+      var percentEl = (Math.floor(adVisibility.getPercentVisible() * 1000) / 10);
+
+      if(percentEl < 100)
+      {
+        if(isVideoPlaying)
+        {
+          Enabler.counter("Ctr_VideoPaused_AdNotFullyDisplayed");
+          videoPause();
+        }
+      }
+
+      //Returns the detailed overflow metrics
+      var visibInfo = adVisibility.getOverflowMetrics();
+      //Output in console
+      console.log("TOP : "+visibInfo[0]+" | RIGHT : "+visibInfo[1]+" | BOTTOM : "+visibInfo[2]+" | LEFT : "+visibInfo[3]);
+    }
+
+    //Background Exit
+    function onBackgroundClicked(event)
+    {
+      Enabler.exit('Background_Exit');
+    }
+
+    function enablerInitialized()
+    {
+      // Wait for page loaded.
+      if (!Enabler.isPageLoaded())
+      {
+        Enabler.addEventListener(
+          studio.events.StudioEvent.PAGE_LOADED,
+          pageLoaded);
+        } else {
+          pageLoaded();
+      }
+    }
+
+    function startMonitoring()
+    {
+      //Initialized upon video ready
+      adVisibility.addEventListener("innovationvisibilitychange",onVisibilityChange);
+      adVisibility.monitor();
+    }
+
+    function pageLoaded()
+    {
+      //Create Background Click Event
+      document.getElementById("background-exit").addEventListener("click", onBackgroundClicked);
+
+      //Initialize YT Player
+      setupVids();
+    }
+
+    function onLoadHandler()
+    {
+      // Wait for Enabler initialization.
+      if (!Enabler.isInitialized())
+      {
+        Enabler.addEventListener(
+        studio.events.StudioEvent.INIT,
+        enablerInitialized);
+      } else {
+        enablerInitialized();
+      }
+    }
+
+    window.addEventListener('load', onLoadHandler);
+  </script>
+</head>
+
+<body>
+  <div class="content-wrapper">
+    <div class="border"></div>
+    <div id="background-exit" class="btn"></div>
+    <div id="video-wrapper" class="btn"></div>
+  </div>
+</body>
+
+</html>
+
