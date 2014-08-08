@@ -10,7 +10,6 @@ var ytp_interior2;
 var firstIntroPlay = true;
 var isVideoPlaying = false;
 
-
 // Some Layout object testing here
 var ytpIntroConfig =  {
   'containerId': 'ytp_iframe',
