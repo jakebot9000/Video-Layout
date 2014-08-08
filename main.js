@@ -56,7 +56,6 @@ ytpInteriorConfig.push({
 /////////
 
 
-
 // Enabler is initialized, set up polite load for remainder of ad.
 var enablerInit = function() {
   console.log('enablerInit');
