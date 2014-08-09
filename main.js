@@ -5,10 +5,10 @@ var adState = 'pre_loader'; //pre_loader,panel_intro,panel_one,panel_two_etc...
 var ytp_intro = null; //intro YTP instance
 var ytpInteriorConfig = [];
 var ytpInteriorPlayers = [];
-var ytp_interior1; //interior YTP 1 instance
-var ytp_interior2;
+var ytp_interior1 = null; //interior YTP 1 instance
+var ytp_interior2 = null;
 var firstIntroPlay = true;
-var isVideoPlaying = false;
+var videoState = {};
 
 // Some Layout object testing here
 var ytpIntroConfig =  {
@@ -79,7 +79,10 @@ var politeInit = function() {
   panel.preload = document.querySelector('#pre_loader');
   panel.intro = document.querySelector('#panel_intro');
   panel.one = document.querySelector('#panel_one');
+  button.introSet = document.querySelector('#intro_controls');
   button.skip = document.querySelector('#intro_controls .skip');
+  button.introPlayToggle = document.querySelector('#intro_controls .playToggle');
+  button.introVolumeToggle = document.querySelector('#intro_controls .volumeToggle');
   button.video1Button = document.querySelector('.select_buttons .video1');
   button.video2Button = document.querySelector('.select_buttons .video2');
 
@@ -150,14 +153,43 @@ var attachEvents = function() {
     return ;
   }
 
+  button.introPlayToggle.addEventListener('click',introPlayToggle);
+  function introPlayToggle() {
+    if(videoState.intro.playing) {
+      Enabler.counter('Video Intro : Pause');
+      ytp_intro.pauseVideo();
+    } else {
+      Enabler.counter('Video Intro : Play');
+      ytp_intro.playVideo();
+    }
+
+    return ;
+  }
+
+  button.introVolumeToggle.addEventListener('click',introVolumeToggle);
+  function introVolumeToggle() {
+    if(!videoState.intro.muted) {
+      Enabler.counter('Video Intro : Mute');
+      ytp_intro.mute();
+      videoState.intro.muted = true;
+    } else {
+      Enabler.counter('Video Intro : UnMute');
+      ytp_intro.unMute();
+      videoState.intro.muted = false;
+    }
+
+    return ;
+  }
+
+
   var refreshButton = document.getElementsByClassName('refresh_ad');
   refreshButton[0].onclick = refreshAd;
   function refreshAd() {
     Enabler.counter('Button : Replay Intro');
 
     pauseAllVideos();
-
     ytp_intro.unMute();
+    videoState.intro.muted = false;
     transitionToState('panel_intro');
     return ;
   }
@@ -179,14 +211,17 @@ var transitionToState = function(state) {
 
       // Hide Pre-Load Section when the Intro Video Starts Playing
       // Keep player hidden until buffer
+      button.introSet.style.display = 'none';
       panel.intro.style.display = "block";
       panel.preload.style.display = "none";
       panel.one.style.display = "none";
-      if(firstIntroPlay) { ytp_intro.mute(); }
+      if(firstIntroPlay) {
+        ytp_intro.mute();
+        videoState.intro.muted = true;
+      }
       // Need to restart at 0 on replay however seekTo method is not an exposed
       // method in IS component. Using loadVideoById instead of playVideo
       ytp_intro.loadVideoById(ytpIntroConfig['videoId']);
-
       firstIntroPlay = false;
     break;
     case "panel_one":
@@ -198,6 +233,7 @@ var transitionToState = function(state) {
 
 
 var setupIntroYTP = function() {
+  videoState.intro = {};
 
   // Create separate iframe div to hold player so wrapper container not
   // converted to iframe
@@ -293,10 +329,10 @@ var onPlayerStateChange = function(stateChangeEvent) {
   switch(playerState){
     case studioinnovation.YTPlayer.Events.ENDED:
       //console.log('END');
-      isVideoPlaying = false;
 
       switch(caller) {
         case 'ytp_intro':
+          videoState.intro.playing = false;
           transitionToState('panel_one');
         break;
         case 'ytp_1':
@@ -308,13 +344,22 @@ var onPlayerStateChange = function(stateChangeEvent) {
       }
 
     break;
-    case studioinnovation.YTPlayer.Events.PLAYING:
+    case studioinnovation.YTPlayer.Events.PLAYING: // Not fired on loadVideoById
       console.log('PLAYING');
-      isVideoPlaying = true;
+      switch(caller) {
+        case 'ytp_intro':
+          videoState.intro.playing = true;
+          console.log("videoState.intro.playing: "+videoState.intro.playing);
+        break;
+      }
     break;
     case studioinnovation.YTPlayer.Events.PAUSED:
-      //console.log('PAUSED');
-      isVideoPlaying = false;
+      switch(caller) {
+        case 'ytp_intro':
+          videoState.intro.playing = false;
+          console.log("videoState.intro.playing: "+videoState.intro.playing);
+        break;
+      }
     break;
     case studioinnovation.YTPlayer.Events.BUFFERING:
       //console.log('BUFFERING');
@@ -329,6 +374,13 @@ var onPlayerStateChange = function(stateChangeEvent) {
      break;
     case  studioinnovation.YTPlayer.Events.TIMER_START:
       //console.log('TIMER START')
+      switch(caller) {
+        case 'ytp_intro':
+          //show controls on play
+          button.introSet.style.display = 'block';
+          videoState.intro.playing = true; // make sure playing state set properly
+        break;
+      }
      break;
     case  studioinnovation.YTPlayer.Events.TIMER_STOP:
       //console.log('TIMER END')
