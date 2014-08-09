@@ -10,6 +10,127 @@ var ytp_interior2 = null;
 var firstIntroPlay = true;
 var videoState = {};
 
+
+// LAYOUTS
+// Configurable API.
+/* TODO:
+    -
+    -
+    -
+*/
+var configurable,
+    config,
+    root,
+    binding;
+
+studio.utils.EnablerAccessor.loadModuleWhenReady(
+    studio.module.ModuleId.CONFIGURABLE_FILLER, loadModuleHandler);
+
+function loadModuleHandler() {
+  window.console.log('loadModuleHandler');
+  configurable = studio.sdk.configurable;
+  config = configurable.config;
+  binding = configurable.binding;
+
+  config.declare('PlayerVars', {
+    'autoplay': 0,
+    'controls': 0,
+    'rel': 0,
+    'showinfo': 0,
+    'html5': 1
+  });
+
+  config.declare('YouTubePlayer', {
+    'videoId': '123456',
+    'videoWidth': 300,
+    'videoHeight': 200,
+    'playerVars': {
+      '@type': 'PlayerVars',
+      '@value': {
+        'autoplay': 0,
+        'controls': 0,
+        'rel': 0,
+        'showinfo': 0,
+        'html5': 1
+      }
+    }
+  });
+
+  // Declare main configuration.
+  config.declare('Main', {
+    'introVideo': { '@type': 'YouTubePlayer' },
+  });
+
+  // Instantiate.
+  var configuration = config.instantiate('Main', {
+    'introVideo': {
+      'videoId': 'ibzGjdcNGXM',
+      'videoWidth': 1110,
+      'videoHeight': 250,
+      'playerVars': {
+        '@type': 'PlayerVars',
+        '@value': {
+          'autoplay': 0,
+          'controls': 0,
+          'rel': 0,
+          'showinfo': 0,
+          'html5': 1
+        }
+      }
+    }
+  });
+
+  // Register.
+  configurable.register(configuration, registerHandler);
+}
+
+function registerHandler(object) {
+  root = object;
+  console.log(root);
+  window.console.log('registerHandler');
+  window.console.log('Config runtime mode: '+configurable.getRuntimeMode());
+
+  // Display local filler. Don't upload to Studio as is!!!
+  // DEVELOPMENT - local testing
+  // FILLER - uploaded to studio and filler view is visible
+  // PLAY - in studio clicking play button which hides filler view
+  // TRAFFICK - trafficked and live??
+  if(configurable.Filler &&
+     configurable.getRuntimeMode() == configurable.RUNTIME_MODE.DEVELOPMENT) {
+    window.console.log('local developer mode!');
+
+    var div = document.createElement('div');
+    div.id = 'filler';
+    window.parent.document.body.appendChild(div);
+    configurable.Filler.display(div, object);
+
+  }else {
+    window.console.log('I am in studio!');
+  }
+
+  // any changes on object trigger this
+  binding.addValueChangeListener(root, valueChangeListener);
+  // any changes on foo trigger this
+  //binding.addValueChangeListener(root['foo'], fooValueChangeListener);
+  // any changes on image upload trigger this
+  //binding.addPropertyChangeListener(root['IntroYouTube'], 'videoId', ytIdChange);
+}
+
+function valueChangeListener(value) {
+  console.log('valueChangeListener', value);
+}
+
+function fooValueChangeListener(value) {
+  console.log('fooValueChangeListener', value);
+}
+
+function ytIdChange(value) {
+  console.log('ytIdChange', value);
+
+
+}
+
+
 // Some Layout object testing here
 var ytpIntroConfig =  {
   'containerId': 'ytp_iframe',
