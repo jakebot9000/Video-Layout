@@ -1,0 +1,41 @@
+<dimensionVariant dimension='970x250'>
+  <primaryAsset originalFilename='index.html' leftOffset='0' topOffset='0' wmode='OPAQUE' expansionMode='NORMAL' pushdownDuration=''>
+    <class name='Main'>
+      <property id='introVideo' optional='true'></property>
+      <property id='closeButton' optional='true'></property>
+    </class>
+    <class name='YouTubeCloseButton'>
+      <property id='shadow' optional='true' type='BOOL'><![CDATA[true]]></property>
+      <property id='theme' optional='true' type='STRING'><![CDATA[black]]></property>
+    </class>
+    <class name='YouTubePlayer'>
+      <property id='controls' optional='true' type='BOOL'><![CDATA[false]]></property>
+      <property id='videoHeight' optional='true' type='DOUBLE'><![CDATA[200.0]]></property>
+      <property id='videoId' optional='true' type='STRING'><![CDATA[123456]]></property>
+      <property id='videoWidth' optional='true' type='DOUBLE'><![CDATA[300.0]]></property>
+      <property id='autoplay' optional='true' type='BOOL'><![CDATA[true]]></property>
+    </class>
+    <defaultValue id='root' type='Main' editable='true'>
+      <registeredObject id='introVideo' type='YouTubePlayer' editable='true'>
+        <property id='controls' type='BOOL' editable='true'><![CDATA[false]]></property>
+        <property id='videoHeight' type='DOUBLE' editable='true'><![CDATA[250.0]]></property>
+        <property id='videoId' type='STRING' editable='true'><![CDATA[ibzGjdcNGXM]]></property>
+        <property id='videoWidth' type='DOUBLE' editable='true'><![CDATA[1110.0]]></property>
+        <property id='autoplay' type='BOOL' editable='true'><![CDATA[true]]></property>
+      </registeredObject>
+      <registeredObject id='closeButton' type='YouTubeCloseButton' editable='true'>
+        <property id='shadow' type='BOOL' editable='true'><![CDATA[true]]></property>
+        <property id='theme' type='STRING' editable='true'><![CDATA[black]]></property>
+      </registeredObject>
+    </defaultValue>
+    <specNode selector='...@{YouTubeCloseButton}.theme' required='false'></specNode>
+    <specNode selector='closeButton.theme' title='Theme' description='The theme of the Close button' required='false'>
+        <restriction name='StringEnumRestriction'>
+          <restrictionArgumentArray>
+            <argumentArrayItem><![CDATA[black]]></argumentArrayItem>
+            <argumentArrayItem><![CDATA[white]]></argumentArrayItem>
+          </restrictionArgumentArray>
+        </restriction>
+      </specNode>
+  </primaryAsset>
+</dimensionVariant>

@@ -14,8 +14,8 @@ var videoState = {};
 // LAYOUTS
 // Configurable API.
 /* TODO:
-    -
-    -
+    - Finalize Filler class structure
+    - Hook up Filler values to actual components
     -
 */
 var configurable,
@@ -32,51 +32,37 @@ function loadModuleHandler() {
   config = configurable.config;
   binding = configurable.binding;
 
-  config.declare('PlayerVars', {
-    'autoplay': 0,
-    'controls': 0,
-    'rel': 0,
-    'showinfo': 0,
-    'html5': 1
+  config.declare('YouTubeCloseButton', {
+    'shadow': true,
+    'theme': {
+      '@value': 'black',
+      '@required': false
+    }
   });
 
   config.declare('YouTubePlayer', {
     'videoId': '123456',
     'videoWidth': 300,
     'videoHeight': 200,
-    'playerVars': {
-      '@type': 'PlayerVars',
-      '@value': {
-        'autoplay': 0,
-        'controls': 0,
-        'rel': 0,
-        'showinfo': 0,
-        'html5': 1
-      }
-    }
+    'autoplay': true,
+    'controls': false
   });
 
   // Declare main configuration.
   config.declare('Main', {
-    'introVideo': { '@type': 'YouTubePlayer' },
+    'closeButton': { '@type': 'YouTubeCloseButton' },
+    'introVideo': { '@type': 'YouTubePlayer' }
   });
 
   // Instantiate.
   var configuration = config.instantiate('Main', {
+    'closeButton': {
+      'shadow': true
+    },
     'introVideo': {
       'videoId': 'ibzGjdcNGXM',
       'videoWidth': 1110,
       'videoHeight': 250,
-      'playerVars': {
-        '@type': 'PlayerVars',
-        '@value': {
-          'autoplay': 0,
-          'controls': 0,
-          'rel': 0,
-          'showinfo': 0,
-          'html5': 1
-        }
-      }
     }
   });
 
