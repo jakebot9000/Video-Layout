@@ -33,9 +33,10 @@ function loadModuleHandler() {
   binding = configurable.binding;
 
   config.declare('YouTubeCloseButton', {
+    'language': 'en', //see cs/ for full list
     'shadow': true,
     'theme': {
-      '@value': 'black',
+      '@value': 'black', //white,black,gray
       '@required': false
     }
   });
@@ -43,9 +44,7 @@ function loadModuleHandler() {
   config.declare('YouTubePlayer', {
     'videoId': '123456',
     'videoWidth': 300,
-    'videoHeight': 200,
-    'autoplay': true,
-    'controls': false
+    'videoHeight': 200
   });
 
   // Declare main configuration.
@@ -94,20 +93,25 @@ function registerHandler(object) {
     window.console.log('I am in studio!');
   }
 
+  // create initial close button based on Filler defaults
+  setupCloseBtn(root['closeButton']);
+
   // any changes on object trigger this
   binding.addValueChangeListener(root, valueChangeListener);
   // any changes on foo trigger this
-  //binding.addValueChangeListener(root['foo'], fooValueChangeListener);
+  binding.addValueChangeListener(root['closeButton'], ytCloseBtnListener);
   // any changes on image upload trigger this
   //binding.addPropertyChangeListener(root['IntroYouTube'], 'videoId', ytIdChange);
 }
 
 function valueChangeListener(value) {
   console.log('valueChangeListener', value);
+
 }
 
-function fooValueChangeListener(value) {
-  console.log('fooValueChangeListener', value);
+function ytCloseBtnListener(value) {
+  console.log('ytCloseBtnListener', value);
+  setupCloseBtn(root['closeButton']);
 }
 
 function ytIdChange(value) {
@@ -302,6 +306,25 @@ var attachEvents = function() {
   }
 
 };
+
+
+/*
+<ci-ytclosebutton lang="en" theme="black" shadow="true" id="ytClose_dc"/></ci>
+*/
+var setupCloseBtn = function(e) {
+  window.console.log('setupCloseBtn: '+e.theme);
+  var closeElement = document.querySelector('#ytClose_dc');
+  if(closeElement) {
+    document.querySelector('#ad_container').removeChild(closeElement);
+  }
+  closeElement = document.createElement('ci-ytclosebutton');
+  closeElement.id = 'ytClose_dc';
+  closeElement.lang = e.language;
+  closeElement.theme = e.theme;
+  closeElement.shadow = e.shadow;
+  closeElement.style.display = 'block';
+  document.querySelector('#ad_container').appendChild(closeElement);
+}
 
 
 var transitionToState = function(state) {
