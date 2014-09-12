@@ -32,6 +32,46 @@ function loadModuleHandler() {
   config = configurable.config;
   binding = configurable.binding;
 
+  config.declare('MovieTickets', {
+    'movieticketsUrl': {
+      '@type': 'string'
+    },
+    'movieticketsLogo': {
+      '@type': 'image'
+    }
+  });
+
+  config.declare('Fandango', {
+    'fandangoUrl': {
+      '@type': 'string'
+    },
+    'fandangoLogo': {
+      '@type': 'image'
+    }
+  });
+
+  config.declare('TicketUrl', {
+    'site': {
+      '@type': ['Fandango', 'MovieTickets']
+    }
+  });
+
+  config.declare('Ticketing', {
+    'ctaImage': {
+      '@type': 'image'
+    },
+    'xPos': {
+      '@type': 'double'
+    },
+    'yPos': {
+      '@type': 'double'
+    },
+    'landingPage': {
+      '@type': 'TicketUrl',
+      '@array': true
+    }
+  });
+
   config.declare('YouTubeCloseButton', {
     'language': 'en',
     'shadow': true,
@@ -66,9 +106,14 @@ function loadModuleHandler() {
 
   // Declare main configuration.
   config.declare('Main', {
-    'closeButton': { '@type': 'YouTubeCloseButton' },
+    'closeButton': {
+      '@type': 'YouTubeCloseButton'
+    },
     'video': {
       '@type': 'VideoPlayer'
+    },
+    'ticketing': {
+      '@type': 'Ticketing'
     }
   });
 
