@@ -33,7 +33,7 @@ function loadModuleHandler() {
   binding = configurable.binding;
 
   config.declare('YouTubeCloseButton', {
-    'language': 'en', //see cs/ for full list
+    'language': 'en',
     'shadow': true,
     'theme': {
       '@value': 'black', //white,black,gray
@@ -41,29 +41,39 @@ function loadModuleHandler() {
     }
   });
 
+  config.declare('PlayerProperties', {
+    'xPos': 0,
+    'yPos': 0,
+    'width': 1110,
+    'height': 250,
+    'autoplay': false,
+    'muted': false,
+    'controls': true
+  });
+
   config.declare('YouTubePlayer', {
-    'videoId': '123456',
-    'videoWidth': 300,
-    'videoHeight': 200
+    'videoId': 'ibzGjdcNGXM',
+    'playerProperties': {
+      '@type': 'PlayerProperties'
+    }
+  });
+
+  config.declare('VideoPlayer', {
+    'playerType': {
+      '@type': 'YouTubePlayer'
+    }
   });
 
   // Declare main configuration.
   config.declare('Main', {
     'closeButton': { '@type': 'YouTubeCloseButton' },
-    'introVideo': { '@type': 'YouTubePlayer' }
+    'video': {
+      '@type': 'VideoPlayer'
+    }
   });
 
   // Instantiate.
-  var configuration = config.instantiate('Main', {
-    'closeButton': {
-      'shadow': true
-    },
-    'introVideo': {
-      'videoId': 'ibzGjdcNGXM',
-      'videoWidth': 1110,
-      'videoHeight': 250,
-    }
-  });
+  var configuration = config.instantiate('Main', {} );
 
   // Register.
   configurable.register(configuration, registerHandler);
@@ -100,8 +110,8 @@ function registerHandler(object) {
   binding.addValueChangeListener(root, valueChangeListener);
   // any changes on foo trigger this
   binding.addValueChangeListener(root['closeButton'], ytCloseBtnListener);
-  // any changes on image upload trigger this
-  //binding.addPropertyChangeListener(root['IntroYouTube'], 'videoId', ytIdChange);
+  // Listen for changes on intro videoId
+  binding.addPropertyChangeListener(root['introVideo'], 'videoId', ytIdChange);
 }
 
 function valueChangeListener(value) {
@@ -114,10 +124,15 @@ function ytCloseBtnListener(value) {
   setupCloseBtn(root['closeButton']);
 }
 
+/**
+ * Updates the YouTube Intro Play with the new Filler value and calls
+ * loadVideoById to immediately load and playback the new video
+ * TODO (pfeneht): load from Filler object, not temp ytpIntroConfig
+ */
 function ytIdChange(value) {
   console.log('ytIdChange', value);
-
-
+  ytpIntroConfig['videoId'] = value;
+  ytp_intro.loadVideoById(ytpIntroConfig['videoId']);
 }
 
 
@@ -369,6 +384,7 @@ var setupIntroYTP = function() {
   // converted to iframe
   var iframe = document.createElement('div');
   iframe.id = 'ytp_iframe';
+
   document.getElementById('ytp_intro').appendChild(iframe);
   // TODO: link user configurable options to layout Filler objects
 
