@@ -118,11 +118,12 @@ function registerHandler(object) {
   //binding.addPropertyChangeListener(root['IntroYouTube'], 'videoId', ytIdChange);
 
   //JAKE!
-  binding.addPropertyChangeListener(
-    root['Main'],
-    'background',
-    this.backgroundListener,
-    this);
+  // studio.sdk.configurable.binding.addPropertyChangeListener(
+  //   root['Main'],
+  //   'background',
+  //   this.backgroundListener,
+  //   this);
+  binding.addValueChangeListener(root['background'], backgroundListener);
 
 }
 
@@ -144,6 +145,8 @@ function backgroundListener(value) {
   console.log('background', value);
   var panelone = document.querySelector('#panel_one');
   panelone.style.backgroundColor=value;
+  console.log(panelone.style.backgroundColor);
+  // panelone.src = Enabler.getUrl(value);
   //"url('"+value+"')";
 
 }
