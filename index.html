@@ -47,23 +47,14 @@
       <a href="#" class="tune_in"></a>
       <div class="ticketing">
         <img src="" class="ctaImage" />
-        <input class="zipInput"></input>
+        <input class="zipInput" type="text" placeholder="Zipcode" pattern="\d{5}" title="Enter only Zipcode"></input>
         <div class="linkContainer"></div>
       </div>
     </div>
 
-    <!-- Hold user defined exits and ONLY visible in Filler & Dev environment -->
+    <!-- Hold user defined exits -->
     <div id="user_exits"></div>
 
-    <!--
-    The YouTube close button will place itself in the top right corner of the parent element, which should be position relative. If the ad tag is setup correctly, the YouTube page language will be used for the text, otherwise it will fallback to using the lang attribute.
-
-    @attribute lang: An ISO 639-1 standard language code.
-    @attribute theme: The color theme of the button. Valid values are 'white', 'gray', 'black'.
-    @attribute shadow: Whether a shadow should be used.
-
-    <ci-ytclosebutton lang="en" theme="black" shadow="true" id="ytClose_dc"/></ci>
-    -->
   </div>
   <script>
     var scriptUrls = [

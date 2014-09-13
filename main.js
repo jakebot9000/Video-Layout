@@ -84,6 +84,28 @@ function loadModuleHandler() {
     }
   });
 
+  config.declare('InteriorYTP', {
+    'xPos': {
+        '@type': 'double'
+      },
+      'yPos': {
+        '@type': 'double'
+      },
+      'width': {
+        '@type': 'double'
+      },
+      'height': {
+        '@type': 'double'
+      },
+      'video1': {
+        '@type': 'VideoPlayer'
+      },
+      'video2': {
+        '@type': 'VideoPlayer',
+        '@required': false
+      }
+  });
+
   config.declare('PlayerProperties', {
     'xPos': {
       '@type': 'double'
@@ -131,6 +153,9 @@ function loadModuleHandler() {
     'introVideo': {
       '@type': 'VideoPlayer'
     },
+    'interiorYTP': {
+      '@type': 'InteriorYTP'
+    },
     'ticketing': {
       '@type': 'Ticketing',
       '@required': false
@@ -148,20 +173,39 @@ function loadModuleHandler() {
       'playerType': {
         'videoId': 'ibzGjdcNGXM', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
         'playerProperties': {
-          'xPos': 0,
-          'yPos': 0,
           'width': 1110,
-          'height': 250,
-          'autoplay': true,
-          'muted': true,
-          'controls': false
+          'height': 250
         }
+      }
+    },
+    'interiorYTP': {
+      'xPos': 700,
+      'yPos': 50,
+      'width': 355,
+      'height': 200,
+      'video1': {
+        'playerType': {
+          'videoId': '2HQkugdXyHY', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
+          'playerProperties': {
+            'autoplay': false,
+          }
+        }
+
+      },
+      'video2': {
+        'playerType': {
+          'videoId': '2HQkugdXyHY', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
+          'playerProperties': {
+            'autoplay': false,
+          }
+        }
+
       }
     },
     'ticketing': {
       'ctaImage': 'gettickets.png',
-      'xPos': 0,
-      'yPos': 0,
+      'xPos': 10,
+      'yPos': 10,
       'fandango': {
         'fandangoUrl': "http://fandango.com/",
         'fandangoIcon': "fandangoIcon.png"
@@ -226,9 +270,10 @@ function registerHandler(object) {
   // Listen for changes on intro videoId
   binding.addPropertyChangeListener(root['introVideo']['playerType'], 'videoId', ytIdChange);
 
-  // create initial close button based on Filler defaults
+  // Setup UI
   setupCloseBtn(root['closeButton']);
   setupIntroYTP(root['introVideo']);
+  //setupInteriorYTP(root['interiorYTP']);
   attachEvents();
 }
 
