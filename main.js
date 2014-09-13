@@ -3,6 +3,7 @@ var panel = {};
 var button = {};
 var adState = 'pre_loader'; //pre_loader,panel_intro,panel_one,panel_two_etc...
 var ytp_intro = null; //intro YTP instance
+var introConfig = {}; //intro config object
 var ytpInteriorConfig = [];
 var ytpInteriorPlayers = [];
 var ytp_interior1 = null; //interior YTP 1 instance
@@ -36,7 +37,7 @@ function loadModuleHandler() {
     'movieticketsUrl': {
       '@type': 'string'
     },
-    'movieticketsLogo': {
+    'movieticketsIcon': {
       '@type': 'image'
     }
   });
@@ -45,14 +46,8 @@ function loadModuleHandler() {
     'fandangoUrl': {
       '@type': 'string'
     },
-    'fandangoLogo': {
+    'fandangoIcon': {
       '@type': 'image'
-    }
-  });
-
-  config.declare('TicketUrl', {
-    'site': {
-      '@type': ['Fandango', 'MovieTickets']
     }
   });
 
@@ -66,33 +61,57 @@ function loadModuleHandler() {
     'yPos': {
       '@type': 'double'
     },
-    'landingPage': {
-      '@type': 'TicketUrl',
-      '@array': true
+    'fandango': {
+      '@type': 'Fandango',
+      '@required': false
+    },
+    'movieTickets': {
+      '@type': 'MovieTickets',
+      '@required': false
     }
   });
 
   config.declare('YouTubeCloseButton', {
-    'language': 'en',
-    'shadow': true,
+    'language': {
+      '@type': 'string'
+    },
+    'shadow': {
+      '@type': 'boolean'
+    },
     'theme': {
-      '@value': 'black', //white,black,gray
+      '@type': 'string',
       '@required': false
     }
   });
 
   config.declare('PlayerProperties', {
-    'xPos': 0,
-    'yPos': 0,
-    'width': 1110,
-    'height': 250,
-    'autoplay': false,
-    'muted': false,
-    'controls': true
+    'xPos': {
+      '@type': 'double'
+    },
+    'yPos': {
+      '@type': 'double'
+    },
+    'width': {
+      '@type': 'double'
+    },
+    'height': {
+      '@type': 'double'
+    },
+    'autoplay': {
+      '@type': 'boolean'
+    },
+    'muted': {
+      '@type': 'boolean'
+    },
+    'controls': {
+      '@type': 'boolean'
+    }
   });
 
   config.declare('YouTubePlayer', {
-    'videoId': 'ibzGjdcNGXM',
+    'videoId': {
+      '@type': 'string'
+    },
     'playerProperties': {
       '@type': 'PlayerProperties'
     }
@@ -109,26 +128,77 @@ function loadModuleHandler() {
     'closeButton': {
       '@type': 'YouTubeCloseButton'
     },
-    'video': {
+    'introVideo': {
       '@type': 'VideoPlayer'
     },
     'ticketing': {
-      '@type': 'Ticketing'
+      '@type': 'Ticketing',
+      '@required': false
     }
   });
 
+  // Default Test Values
+  var testValues =  {
+    'closeButton': {
+      'language': 'en',
+      'shadow': true,
+      'theme': 'black'
+    },
+    'introVideo': {
+      'playerType': {
+        'videoId': 'ibzGjdcNGXM', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
+        'playerProperties': {
+          'xPos': 0,
+          'yPos': 0,
+          'width': 1110,
+          'height': 250,
+          'autoplay': true,
+          'muted': true,
+          'controls': false
+        }
+      }
+    },
+    'ticketing': {
+      'ctaImage': 'gettickets.png',
+      'xPos': 0,
+      'yPos': 0,
+      'fandango': {
+        'fandangoUrl': "http://fandango.com/",
+        'fandangoIcon': "fandangoIcon.png"
+      },
+      'movieTickets': {
+        'movieticketsUrl': "http://movietickets.com/",
+        'movieticketsIcon': "movieticketsIcon.png"
+      }
+    }
+  };
+
+
+
   // Instantiate.
-  var configuration = config.instantiate('Main', {} );
+  var configuration = config.instantiate('Main', testValues);
 
   // Register.
   configurable.register(configuration, registerHandler);
 }
+
 
 function registerHandler(object) {
   root = object;
   console.log(root);
   window.console.log('registerHandler');
   window.console.log('Config runtime mode: '+configurable.getRuntimeMode());
+
+  // Assign DOM elements
+  panel.preload = document.querySelector('#pre_loader');
+  panel.intro = document.querySelector('#panel_intro');
+  panel.one = document.querySelector('#panel_one');
+  button.introSet = document.querySelector('#intro_controls');
+  button.skip = document.querySelector('#intro_controls .skip');
+  button.introPlayToggle = document.querySelector('#intro_controls .playToggle');
+  button.introVolumeToggle = document.querySelector('#intro_controls .volumeToggle');
+  button.video1Button = document.querySelector('.select_buttons .video1');
+  button.video2Button = document.querySelector('.select_buttons .video2');
 
   // Display local filler. Don't upload to Studio as is!!!
   // DEVELOPMENT - local testing
@@ -139,17 +209,15 @@ function registerHandler(object) {
      configurable.getRuntimeMode() == configurable.RUNTIME_MODE.DEVELOPMENT) {
     window.console.log('local developer mode!');
 
-    var div = document.createElement('div');
-    div.id = 'filler';
-    window.parent.document.body.appendChild(div);
-    configurable.Filler.display(div, object);
+    // @PF - kill local filler, is buggy
+    // var div = document.createElement('div');
+    // div.id = 'filler';
+    // window.parent.document.body.appendChild(div);
+    // configurable.Filler.display(div, object);
 
   }else {
     window.console.log('I am in studio!');
   }
-
-  // create initial close button based on Filler defaults
-  setupCloseBtn(root['closeButton']);
 
   // any changes on object trigger this
   binding.addValueChangeListener(root, valueChangeListener);
@@ -157,6 +225,11 @@ function registerHandler(object) {
   binding.addValueChangeListener(root['closeButton'], ytCloseBtnListener);
   // Listen for changes on intro videoId
   binding.addPropertyChangeListener(root['introVideo'], 'videoId', ytIdChange);
+
+  // create initial close button based on Filler defaults
+  setupCloseBtn(root['closeButton']);
+  setupIntroYTP(root['introVideo']);
+  attachEvents();
 }
 
 function valueChangeListener(value) {
@@ -176,99 +249,8 @@ function ytCloseBtnListener(value) {
  */
 function ytIdChange(value) {
   console.log('ytIdChange', value);
-  ytpIntroConfig['videoId'] = value;
-  ytp_intro.loadVideoById(ytpIntroConfig['videoId']);
+  ytp_intro.loadVideoById(value);
 }
-
-
-// Some Layout object testing here
-var ytpIntroConfig =  {
-  'containerId': 'ytp_iframe',
-  'videoId': 'ibzGjdcNGXM',
-  'videoWidth': 1110,
-  'videoHeight': 250,
-  'playerVars': {
-    'autoplay': 0,
-    'controls': 0,
-    'rel': 0,
-    'showinfo': 0,
-    'html5': 1
-  }
-};
-
-ytpInteriorConfig.push({
-  'containerId': 'ytp',
-  'videoId': '2HQkugdXyHY',
-  'videoWidth': 355,
-  'videoHeight': 200,
-  'playerVars': {
-    'autoplay': 0,
-    'controls': 1,
-    'rel': 0,
-    'showinfo': 0,
-    'html5': 1
-  }
-});
-
-ytpInteriorConfig.push({
-  'containerId': 'ytp',
-  'videoId': 'vd3dH90tdhk',
-  'videoWidth': 355,
-  'videoHeight': 200,
-  'playerVars': {
-    'autoplay': 0,
-    'controls': 1,
-    'rel': 0,
-    'showinfo': 0,
-    'html5': 1
-  }
-});
-
-/////////
-
-
-// Enabler is initialized, set up polite load for remainder of ad.
-var enablerInit = function() {
-  console.log('enablerInit');
-  if (Enabler.isPageLoaded()) {
-    politeInit();
-  } else {
-    Enabler.addEventListener(studio.events.StudioEvent.PAGE_LOADED, politeInit);
-  }
-};
-
-
-// Polite load components.
-var politeInit = function() {
-  console.log('politeInit ');
-
-  /* TODO: Do we need to polite load anything?
-           Add sound and play/pause button to intro video
-  */
-
-  // Assign DOM elements
-  panel.preload = document.querySelector('#pre_loader');
-  panel.intro = document.querySelector('#panel_intro');
-  panel.one = document.querySelector('#panel_one');
-  button.introSet = document.querySelector('#intro_controls');
-  button.skip = document.querySelector('#intro_controls .skip');
-  button.introPlayToggle = document.querySelector('#intro_controls .playToggle');
-  button.introVolumeToggle = document.querySelector('#intro_controls .volumeToggle');
-  button.video1Button = document.querySelector('.select_buttons .video1');
-  button.video2Button = document.querySelector('.select_buttons .video2');
-
-  // Events
-  attachEvents();
-
-  // TODO: Set up exit tracking and options?
-  // TODO: Set up Counters and timers?
-  // Naming Structure "Target : Action" ex. Video Intro : Skip
-
-
-  // TODO: Combine intro and interior YTP creation into one function
-  setupIntroYTP();
-  setupInteriorYTP(ytpInteriorConfig);
-};
 
 
 // TODO: Set up a Toggle Between ytp_interior1; and ytp_interior2;
@@ -411,7 +393,7 @@ var transitionToState = function(state) {
       }
       // Need to restart at 0 on replay however seekTo method is not an exposed
       // method in IS component. Using loadVideoById instead of playVideo
-      ytp_intro.loadVideoById(ytpIntroConfig['videoId']);
+      ytp_intro.loadVideoById(introConfig.videoId);
       firstIntroPlay = false;
     break;
     case "panel_one":
@@ -422,19 +404,37 @@ var transitionToState = function(state) {
 };
 
 
-var setupIntroYTP = function() {
+var setupIntroYTP = function(config) {
+  window.console.log(config);
+  var obj = config.playerType;
+
   videoState.intro = {};
+  //TODO (pfeneht) - When setup in closure properly we won't have to use
+  // global variable bs.
+  introConfig.videoId = obj.videoId;
+
+  var playerConfig = {
+    'containerId': 'ytp_iframe', // use above created div as ytp iframe
+    'videoId': obj.videoId,
+    'videoWidth': obj.playerProperties.width,
+    'videoHeight': obj.playerProperties.height,
+    'playerVars': {
+      'autoplay': 1,
+      'controls': 0,
+      'rel': 0,
+      'showinfo': 0,
+      'html5': 1
+    }
+  };
 
   // Create separate iframe div to hold player so wrapper container not
   // converted to iframe
   var iframe = document.createElement('div');
   iframe.id = 'ytp_iframe';
-
   document.getElementById('ytp_intro').appendChild(iframe);
-  // TODO: link user configurable options to layout Filler objects
-
   // This function creates an <iframe> YouTube player
-  ytp_intro = new studioinnovation.YTPlayer(ytpIntroConfig);
+  ytp_intro = new studioinnovation.YTPlayer(playerConfig);
+  console.log(ytp_intro);
   ytp_intro.name = "ytp_intro";
   // TODO: why are event handlers not always added? May just happen locally?
   ytp_intro.addEventListener('ready', onPlayerReady, false);
@@ -590,15 +590,5 @@ var pauseAllVideos = function() {
     for (var i = 0; i < ytpInteriorPlayers.length; i++) {
       ytpInteriorPlayers[i].pauseVideo();
     }
-  }
-}
-
-
-window.onload = function() {
-  /* Initialize Enabler */
-  if (Enabler.isInitialized()) {
-    enablerInit();
-  } else {
-    Enabler.addEventListener(studio.events.StudioEvent.INIT, enablerInit);
   }
 }

@@ -7,14 +7,6 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <link rel="stylesheet" type="text/css" href="filler.css">
   <script src="http://s0.2mdn.net/ads/studio/Enabler.js"></script>
-  <!-- Polymer should come before custom elements, like the close button. -->
-    <script src="https://www.gstatic.com/external_hosted/polymer/custom.elements.min.js"></script>
-
-  <!-- YouTube close button. -->
-    <script src="https://www.gstatic.com/ads/ci/ytclosebutton/1/ytclosebutton_min.js"></script>
-  <script src="https://www.gstatic.com/doubleclick/studio/innovation/h5/ytplayer/ytp_v2.js"></script>
-  <script src="main.js"></script>
-
 </head>
 <body>
 
@@ -53,7 +45,11 @@
     <div id="persistent_display">
       <div class="title_logo"></div>
       <a href="#" class="tune_in"></a>
-      <a href="#" class="ticketing"></a>
+      <div class="ticketing">
+        <img src="" class="ctaImage" />
+        <input class="zipInput"></input>
+        <div class="linkContainer"></div>
+      </div>
     </div>
 
     <!-- Hold user defined exits and ONLY visible in Filler & Dev environment -->
@@ -69,5 +65,38 @@
     <ci-ytclosebutton lang="en" theme="black" shadow="true" id="ytClose_dc"/></ci>
     -->
   </div>
+  <script>
+    var scriptUrls = [
+      'https://www.gstatic.com/external_hosted/polymer/custom.elements.min.js',
+      'https://www.gstatic.com/ads/ci/ytclosebutton/1/ytclosebutton_min.js',
+      'https://www.gstatic.com/doubleclick/studio/innovation/h5/ytplayer/ytp_v2.js',
+      'main.js'
+    ];
+
+    studio.utils.EnablerAccessor.loadModuleWhenReady(
+        studio.module.ModuleId.CONFIGURABLE, loadModuleHandler);
+
+    function loadModuleHandler() {
+      loadNextScript();
+    }
+
+    function loadNextScript() {
+      var enabler = studio.Enabler.getInstance();
+      var scriptUrl = scriptUrls.shift();
+      if (scriptUrl) {
+        enabler.loadScript(scriptUrl, loadNextScript);
+      } else {
+        if (enabler.isVisible()) {
+          //new InAppBrandedVideo();
+        } else {
+          enabler.addEventListener(
+            studio.events.StudioEvent.VISIBLE,
+            function() {
+              //new InAppBrandedVideo();
+            });
+        }
+      }
+    }
+</script>
 </body>
 </html>
