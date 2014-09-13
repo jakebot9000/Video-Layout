@@ -224,7 +224,7 @@ function registerHandler(object) {
   // any changes on foo trigger this
   binding.addValueChangeListener(root['closeButton'], ytCloseBtnListener);
   // Listen for changes on intro videoId
-  binding.addPropertyChangeListener(root['introVideo'], 'videoId', ytIdChange);
+  binding.addPropertyChangeListener(root['introVideo']['playerType'], 'videoId', ytIdChange);
 
   // create initial close button based on Filler defaults
   setupCloseBtn(root['closeButton']);
