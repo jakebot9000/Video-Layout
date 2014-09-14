@@ -141,6 +141,8 @@ html, body {
   position: absolute;
   top: 25px;
   left: 585px;
+  width: 355px;
+  height: 200px;
 }
 
 #panel_one .refresh_ad{
@@ -156,26 +158,12 @@ html, body {
 #panel_one .select_buttons {
   position: absolute;
   top: 225px;
-  left: 865px;
+  left: 585px; /*TODO: assign and move with interior YTP value; */
   cursor: pointer;
   text-align: center;
-}
-
-#panel_one .select_buttons .video1{
-  position: absolute;
-  width: 35px;
   height: 25px;
-  background-color: rgba(111,0,111,1);
-  opacity: 1;
-}
-
-#panel_one .select_buttons .video2{
-  position: absolute;
-  width: 35px;
-  height: 25px;
-  left: 40px;
-  background-color: rgba(50,0,50,1);
-  opacity: 0.6;
+  width: 355px;
+  overflow: hidden;
 }
 
 

@@ -84,6 +84,13 @@ function loadModuleHandler() {
     }
   });
 
+  config.declare('VideoIDArray', {
+    'videoID': {
+      '@type': 'string',
+      '@value': '2HQkugdXyHY'
+    }
+  });
+
   config.declare('InteriorYTP', {
     'xPos': {
         '@type': 'double'
@@ -97,51 +104,18 @@ function loadModuleHandler() {
       'height': {
         '@type': 'double'
       },
-      'video1': {
-        '@type': 'VideoPlayer'
+      'theme': {
+        '@type': 'string'
       },
-      'video2': {
-        '@type': 'VideoPlayer',
-        '@required': false
+      'videoIDs': {
+        '@type': 'VideoIDArray',
+        '@array': true
       }
   });
 
-  config.declare('PlayerProperties', {
-    'xPos': {
-      '@type': 'double'
-    },
-    'yPos': {
-      '@type': 'double'
-    },
-    'width': {
-      '@type': 'double'
-    },
-    'height': {
-      '@type': 'double'
-    },
-    'autoplay': {
-      '@type': 'boolean'
-    },
-    'muted': {
-      '@type': 'boolean'
-    },
-    'controls': {
-      '@type': 'boolean'
-    }
-  });
-
-  config.declare('YouTubePlayer', {
-    'videoId': {
+  config.declare('IntroYTP', {
+    'videoID': {
       '@type': 'string'
-    },
-    'playerProperties': {
-      '@type': 'PlayerProperties'
-    }
-  });
-
-  config.declare('VideoPlayer', {
-    'playerType': {
-      '@type': 'YouTubePlayer'
     }
   });
 
@@ -150,8 +124,8 @@ function loadModuleHandler() {
     'closeButton': {
       '@type': 'YouTubeCloseButton'
     },
-    'introVideo': {
-      '@type': 'VideoPlayer'
+    'introYTP': {
+      '@type': 'IntroYTP'
     },
     'interiorYTP': {
       '@type': 'InteriorYTP'
@@ -169,37 +143,20 @@ function loadModuleHandler() {
       'shadow': true,
       'theme': 'black'
     },
-    'introVideo': {
-      'playerType': {
-        'videoId': 'ibzGjdcNGXM', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
-        'playerProperties': {
-          'width': 1110,
-          'height': 250
-        }
-      }
+    'introYTP': {
+      'videoID': 'ibzGjdcNGXM' //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
     },
     'interiorYTP': {
       'xPos': 700,
       'yPos': 50,
       'width': 355,
       'height': 200,
-      'video1': {
-        'playerType': {
-          'videoId': '2HQkugdXyHY', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
-          'playerProperties': {
-            'autoplay': false,
-          }
-        }
-
-      },
-      'video2': {
-        'playerType': {
-          'videoId': '2HQkugdXyHY', //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
-          'playerProperties': {
-            'autoplay': false,
-          }
-        }
-
+      'theme': 'dark',
+      'videoIDs': {
+        /**
+         * TODO (pfeneht) - how do you add default filler array items via code?
+         */
+        'videoID': '2HQkugdXyHY' //ibzGjdcNGXM, 2HQkugdXyHY, vd3dH90tdhk
       }
     },
     'ticketing': {
@@ -241,8 +198,8 @@ function registerHandler(object) {
   button.skip = document.querySelector('#intro_controls .skip');
   button.introPlayToggle = document.querySelector('#intro_controls .playToggle');
   button.introVolumeToggle = document.querySelector('#intro_controls .volumeToggle');
-  button.video1Button = document.querySelector('.select_buttons .video1');
-  button.video2Button = document.querySelector('.select_buttons .video2');
+  button.refresh = document.querySelector('#panel_one .refresh_ad');
+  button.interior = document.querySelector('.select_buttons');
 
   // Display local filler. Don't upload to Studio as is!!!
   // DEVELOPMENT - local testing
@@ -268,13 +225,27 @@ function registerHandler(object) {
   // any changes on foo trigger this
   binding.addValueChangeListener(root['closeButton'], ytCloseBtnListener);
   // Listen for changes on intro videoId
-  binding.addPropertyChangeListener(root['introVideo']['playerType'], 'videoId', ytIdChange);
+  binding.addPropertyChangeListener(root['introYTP'], 'videoID', ytIdChange);
+
+  binding.addArrayInsertListener(root['interiorYTP'],
+    'videoIDs', addInteriorYTP
+  );
+
+  binding.addArrayRemoveListener(root['interiorYTP'],
+    'videoIDs',
+    function(newValue, newIndex, imagesArray) {
+      console.log('removeInteriorYTP', imagesArray);
+      binding.removePropertyChangeListener(imagesArray[newIndex],
+        'videoID',
+        ytInteriorChange);
+      }
+  );
 
   // Setup UI
   setupCloseBtn(root['closeButton']);
-  setupIntroYTP(root['introVideo']);
+  setupIntroYTP(root['introYTP']);
   //setupInteriorYTP(root['interiorYTP']);
-  attachEvents();
+  attachEvents("register");
 }
 
 function valueChangeListener(value) {
@@ -287,110 +258,140 @@ function ytCloseBtnListener(value) {
   setupCloseBtn(root['closeButton']);
 }
 
+
 /**
  * Updates the YouTube Intro Play with the new Filler value and calls
- * loadVideoById to immediately load and playback the new video
- * TODO (pfeneht): load from Filler object, not temp ytpIntroConfig
+ * loadVideoById to immediately load and playback the new video ID
+ * TODO (pfeneht): change introConfig.videoId to local var once closure
+ *   has been setup properly.
  */
 function ytIdChange(value) {
   console.log('ytIdChange', value);
-  ytp_intro.loadVideoById(value);
+  introConfig.videoId = value;
+  if(adState == 'panel_intro') {
+    ytp_intro.loadVideoById(value);
+  }
 }
 
 
-// TODO: Set up a Toggle Between ytp_interior1; and ytp_interior2;
-//       Create buttons dynamically based on number in ytpInterior array
-var attachEvents = function() {
-  // Disable default touchmove behaviors to prevent touch scrolling
-  document.body.addEventListener('touchmove', function(event) {
-    event.preventDefault();
-  }, false);
+function InteriorYTPListener(config) {
+  console.log('InteriorYTPListener', config);
 
-  button.video1Button.addEventListener('click',showVideo1);
-  function showVideo1() {
-    Enabler.counter('Video 1 : Clicked');
+}
 
-    pauseAllVideos();
+function ytInteriorChange(value) {
+  console.log('ytInteriorChange', value);
 
-    var ytp1 = document.getElementById('ytp').children[0];
-    var ytp2 = document.getElementById('ytp').children[1];
-    if(ytp1.style.display == 'none') {
-      ytp1.style.display = 'block';
-      ytp2.style.display = 'none';
+}
 
-      button.video1Button.style.opacity = 1.0;
-      button.video2Button.style.opacity = .6;
-    }
-    return ;
+
+var attachEvents = function(adState) {
+
+
+  window.console.log("transitionToState: ",adState);
+
+  switch(adState) {
+
+    case "pre_loader":
+
+    break;
+    case "panel_intro":
+      button.skip.addEventListener('click', function() {
+        Enabler.counter('Video Intro : Skip');
+
+        ytp_intro.pauseVideo();
+        transitionToState('panel_one');
+        return ;
+      });
+
+      button.introPlayToggle.addEventListener('click', function() {
+        if(videoState.intro.playing) {
+          Enabler.counter('Video Intro : Pause');
+          ytp_intro.pauseVideo();
+        } else {
+          Enabler.counter('Video Intro : Play');
+          ytp_intro.playVideo();
+        }
+        return ;
+      });
+
+      button.introVolumeToggle.addEventListener('click',function() {
+        if(!videoState.intro.muted) {
+          Enabler.counter('Video Intro : Mute');
+          ytp_intro.mute();
+          videoState.intro.muted = true;
+        } else {
+          Enabler.counter('Video Intro : UnMute');
+          ytp_intro.unMute();
+          videoState.intro.muted = false;
+        }
+        return ;
+      });
+    break;
+    case "panel_one":
+      button.refresh.addEventListener('click',function() {
+        Enabler.counter('Button : Replay Intro');
+
+        pauseAllVideos();
+        ytp_intro.unMute();
+        videoState.intro.muted = false;
+        transitionToState('panel_intro');
+        return ;
+      });
+    break;
+    case "register":
+      console.log('attachEvents: ','default case');
+      // Disable default touchmove behaviors to prevent touch scrolling
+      document.body.addEventListener('touchmove', function(event) {
+        event.preventDefault();
+      }, false);
+    break;
+    default:
+
+    break;
   }
 
-  button.video2Button.addEventListener('click',showVideo2);
-  function showVideo2() {
-    Enabler.counter('Video 2 : Clicked');
+  /**
+   * TODO (pfeneht) - Set up loop depending on how many interior videos
+   * were added in the filler
+   */
+  // button.interior.video1.addEventListener('click',showVideo1);
+  // function showVideo1() {
+  //   Enabler.counter('Video 1 : Clicked');
 
-    pauseAllVideos();
+  //   pauseAllVideos();
 
-    var ytp1 = document.getElementById('ytp').children[0];
-    var ytp2 = document.getElementById('ytp').children[1];
-    if(ytp2.style.display == 'none') {
-      ytp2.style.display = 'block';
-      ytp1.style.display = 'none';
+  //   var ytp1 = document.getElementById('ytp').children[0];
+  //   var ytp2 = document.getElementById('ytp').children[1];
+  //   if(ytp1.style.display == 'none') {
+  //     ytp1.style.display = 'block';
+  //     ytp2.style.display = 'none';
 
-      button.video2Button.style.opacity = 1.0;
-      button.video1Button.style.opacity = .6;
-    }
-    return ;
-  }
+  //     button.interior.video1.style.opacity = 1.0;
+  //     button.interior.video2.style.opacity = .6;
+  //   }
+  //   return ;
+  // }
 
-  button.skip.addEventListener('click',skipIntro);
-  function skipIntro() {
-    Enabler.counter('Video Intro : Skip');
+  // if(button.interior.video2) {
+  //   button.interior.video2.addEventListener('click',showVideo2);
+  //   function showVideo2() {
+  //     Enabler.counter('Video 2 : Clicked');
 
-    ytp_intro.pauseVideo();
-    transitionToState('panel_one');
-    return ;
-  }
+  //     pauseAllVideos();
 
-  button.introPlayToggle.addEventListener('click',introPlayToggle);
-  function introPlayToggle() {
-    if(videoState.intro.playing) {
-      Enabler.counter('Video Intro : Pause');
-      ytp_intro.pauseVideo();
-    } else {
-      Enabler.counter('Video Intro : Play');
-      ytp_intro.playVideo();
-    }
+  //     var ytp1 = document.getElementById('ytp').children[0];
+  //     var ytp2 = document.getElementById('ytp').children[1];
+  //     if(ytp2.style.display == 'none') {
+  //       ytp2.style.display = 'block';
+  //       ytp1.style.display = 'none';
 
-    return ;
-  }
-
-  button.introVolumeToggle.addEventListener('click',introVolumeToggle);
-  function introVolumeToggle() {
-    if(!videoState.intro.muted) {
-      Enabler.counter('Video Intro : Mute');
-      ytp_intro.mute();
-      videoState.intro.muted = true;
-    } else {
-      Enabler.counter('Video Intro : UnMute');
-      ytp_intro.unMute();
-      videoState.intro.muted = false;
-    }
-
-    return ;
-  }
-
-
-  var refreshButton = document.getElementsByClassName('refresh_ad');
-  refreshButton[0].onclick = refreshAd;
-  function refreshAd() {
-    Enabler.counter('Button : Replay Intro');
-
-    pauseAllVideos();
-    ytp_intro.unMute();
-    videoState.intro.muted = false;
-    transitionToState('panel_intro');
-    return ;
-  }
+  //       button.interior.video2.style.opacity = 1.0;
+  //       button.interior.video1.style.opacity = .6;
+  //     }
+  //     return ;
+  //   }
+  // }
 
 };
 
@@ -435,6 +436,7 @@ var transitionToState = function(state) {
       if(firstIntroPlay) {
         ytp_intro.mute();
         videoState.intro.muted = true;
+        attachEvents(adState);
       }
       // Need to restart at 0 on replay however seekTo method is not an exposed
       // method in IS component. Using loadVideoById instead of playVideo
@@ -444,25 +446,23 @@ var transitionToState = function(state) {
     case "panel_one":
       panel.intro.style.display = "none";
       panel.one.style.display = "block";
+      attachEvents(adState);
     break;
   }
 };
 
 
 var setupIntroYTP = function(config) {
-  window.console.log(config);
-  var obj = config.playerType;
-
   videoState.intro = {};
   //TODO (pfeneht) - When setup in closure properly we won't have to use
-  // global variable bs.
-  introConfig.videoId = obj.videoId;
+  // global variable.
+  introConfig.videoId = config.videoID;
 
   var playerConfig = {
     'containerId': 'ytp_iframe', // use above created div as ytp iframe
-    'videoId': obj.videoId,
-    'videoWidth': obj.playerProperties.width,
-    'videoHeight': obj.playerProperties.height,
+    'videoId': config.videoID,
+    'videoWidth': 1110,
+    'videoHeight': 250,
     'playerVars': {
       'autoplay': 1,
       'controls': 0,
@@ -479,7 +479,6 @@ var setupIntroYTP = function(config) {
   document.getElementById('ytp_intro').appendChild(iframe);
   // This function creates an <iframe> YouTube player
   ytp_intro = new studioinnovation.YTPlayer(playerConfig);
-  console.log(ytp_intro);
   ytp_intro.name = "ytp_intro";
   // TODO: why are event handlers not always added? May just happen locally?
   ytp_intro.addEventListener('ready', onPlayerReady, false);
@@ -487,51 +486,84 @@ var setupIntroYTP = function(config) {
 };
 
 
-var setupInteriorYTP = function(obj) {
+var addInteriorYTP = function(newValue, newIndex, imagesArray) {
+  console.log('addInteriorYTP', imagesArray);
+  binding.addPropertyChangeListener(imagesArray[newIndex],
+    'videoID', ytInteriorChange
+  );
 
-  // Dynamically create divs and ytp based on passed in obj parameters
-  // This is helpful once we get to layouts we can dynamically create everything
-  // And allow users to have 1 video to start with, and add to the array
-  /* TODO:
-      -Verify events are firing and tracked properly for each player
-  */
-  for (var i = 0; i < obj.length; i++) {
-    console.log('setupInteriorYTP:',obj[i]);
+  var videoID_ = imagesArray[newIndex]['videoID'];
 
-    var ytp_iframe = document.createElement('div');
-    ytp_iframe.id = 'ytp'+(i+1)+'_iframe';
-    ytp_iframe.setAttribute(
-      "style",
-      "width:"+obj[i].videoWidth+"px;height:"+obj[i].videoHeight+"px;"+
-      "position:absolute;display:none;"
-    );
-    //ytp_iframe.style.width = obj[i].videoWidth;
-    //ytp_iframe.style.height = obj[i].videoHeight;
+  /** Create divs and ytp based on array values from filler.
+   * TODO (pfeneht) Attach / remove events for each YTP and Select Buttons
+   *   Does each player need it's own playerVars for theme? How do I pull those
+   *     values in at add time?
+   */
+  var ytp_iframe = document.createElement('div');
+  ytp_iframe.id = 'ytp'+(newIndex+1)+'_iframe';
+  ytp_iframe.setAttribute(
+    "style",
+    "width:"+root['interiorYTP'].width+"px;"+
+    "height:"+root['interiorYTP'].height+"px;"+
+    "position:absolute;display:none;"
+  );
 
-    document.getElementById('ytp').appendChild(ytp_iframe);
+  document.getElementById('ytp').appendChild(ytp_iframe);
 
-    var player = {
-      'containerId': ytp_iframe, // use above created div as ytp iframe
-      'videoId': obj[i].videoId,
-      'videoWidth': obj[i].videoWidth,
-      'videoHeight': obj[i].videoHeight,
-      'playerVars': {
-        'autoplay': obj[i].playerVars.autoplay,
-        'controls': obj[i].playerVars.controls,
-        'rel': obj[i].playerVars.rel,
-        'showinfo': obj[i].playerVars.showinfo,
-        'html5': 1
-      }
-    };
+  console.log(root);
 
-    // This function turns containerId into an <iframe> YouTube player
-    var ytp = new studioinnovation.YTPlayer(player);
-    ytp.name = 'ytp_'+(i+1);
-    ytpInteriorPlayers.push(ytp);
-    ytp.addEventListener('ready', onPlayerReady, false);
-    ytp.addEventListener('statechange', onPlayerStateChange, false);
-  }
+  var player = {
+    'containerId': ytp_iframe, // use above created div as ytp iframe
+    'videoId': videoID_,
+    //'videoWidth': root['interiorYTP'].width,
+    //'videoHeight': root['interiorYTP'].height,
+    'playerVars': {
+      'theme': 'dark',
+      'autoplay': false,
+      'controls': 1,
+      'rel': 0,
+      'showinfo': 0,
+      'html5': 1
+    }
+  };
 
+  // This function turns containerId into an <iframe> YouTube player
+  var ytp = new studioinnovation.YTPlayer(player);
+  ytp.name = 'ytp_'+(newIndex+1);
+  ytpInteriorPlayers.push(ytp);
+  ytp.addEventListener('ready', onPlayerReady, false);
+  ytp.addEventListener('statechange', onPlayerStateChange, false);
+
+  // Add select button div
+  addSelectButton_(newIndex+1,'select_buttons');
+
+};
+
+/**
+ * Adds a new video select button to DOM parent div
+ * @param {number} index Class name to give new div.
+ * @param {string} parentDiv Parent div class to append new div to
+ * @private
+ */
+var addSelectButton_ = function(index,parentDiv) {
+  console.log('addSelectButton_ '+index);
+  var div = document.createElement('div');
+  div.className = 'video'+index.toString();
+  div.setAttribute("style",
+    "float:right;width:35px;height:25px;background-color:rgba(111,0,111,1);"+
+    "opacity:1;"
+  );
+  // float: right;
+  // width: 35px;
+  // height: 25px;
+  // background-color: rgba(111,0,111,1);
+  // opacity: 1;
+
+  div.textContent = index.toString();
+  var parentDiv = document.querySelector(''+'.'+parentDiv+'');
+  parentDiv.insertBefore(div, parentDiv.firstChild);
+  button.interior['video'+index.toString()] = div;
+  //TODO (pfeneht): link up each interior button event handler
 };
 
 
