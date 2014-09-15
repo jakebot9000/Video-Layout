@@ -178,7 +178,7 @@ function loadModuleHandler() {
     },
     'tuneIn': {
       '@type': 'Title'
-    }
+    },
     'replayButton': {
       '@type': 'Title'
     },
@@ -311,7 +311,7 @@ function registerHandler(object) {
     this.mainBackgroundListener,
     this
   );
-  
+
   //JAKE!
   binding.addPropertyChangeListener(
     root['titleLogo'],
