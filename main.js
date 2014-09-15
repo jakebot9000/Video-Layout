@@ -179,6 +179,18 @@ function loadModuleHandler() {
     'tuneIn': {
       '@type': 'Title'
     }
+    'replayButton': {
+      '@type': 'Title'
+    },
+    'skipButton': {
+      '@type': 'Title'
+    },
+    'volumeButton': {
+      '@type': 'Title'
+    },
+    'pauseButton': {
+      '@type': 'Title'
+    }
 
   });
 
@@ -299,10 +311,12 @@ function registerHandler(object) {
     this.mainBackgroundListener,
     this
   );
+  
+  //JAKE!
   binding.addPropertyChangeListener(
     root['titleLogo'],
-    'HotSpot',
-    this.mainBackgroundListener,
+    'imageSettings',
+    this.titleLogoListener,
     this
   );
 
@@ -351,20 +365,17 @@ function ytInteriorChange(value) {
 
 function preloadBackgroundListener(value) {
   console.log('preloadBackground', value);
-  var panelone = document.querySelector('#pre_loader');
-  panelone.style.backgroundImage="url('"+Enabler.getUrl(value)+"')";
+  panel.preload.style.backgroundImage="url('"+Enabler.getUrl(value)+"')";
 }
 
 function mainBackgroundListener(value) {
   console.log('mainBackground', value);
-  var panelone = document.querySelector('#panel_one');
-  panelone.style.backgroundImage="url('"+Enabler.getUrl(value)+"')";
+  panel.one.style.backgroundImage="url('"+Enabler.getUrl(value)+"')";
 }
 
+//JAKE!
 function titleLogoListener(value) {
   console.log('titleLogoListener', value);
-  // var panelone = document.querySelector('#panel_one');
-  // panelone.style.backgroundImage="url('"+Enabler.getUrl(value)+"')";
 }
 
 var attachEvents = function(adState) {
